@@ -8,3 +8,4 @@ base58==2.1.0               # Base58编码库（用于比特币地址生成）
 Flask==2.3.3                # Web框架
 Flask-CORS==4.0.0           # 跨域资源共享支持
 
+gunicorn==21.2.0
