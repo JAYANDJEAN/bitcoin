@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}发送交易 - 比特币系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-paper-plane"></i> 发送交易
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit"></i> 创建新交易
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="transactionForm">
+                    <div class="mb-3">
+                        <label for="fromWallet" class="form-label">发送方钱包</label>
+                        <select class="form-select" id="fromWallet" required>
+                            <option value="">选择钱包</option>
+                            {% for wallet in wallets %}
+                            <option value="{{ wallet.name }}" data-balance="{{ wallet.balance }}">
+                                {{ wallet.name }} ({{ wallet.address[:16] }}...) - {{ "%.4f"|format(wallet.balance) }}
+                                BTC
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">选择要发送交易的钱包</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="toWallet" class="form-label">接收方地址</label>
+                        <select class="form-select" id="toWallet" required>
+                            <option value="">选择接收方</option>
+                            {% for wallet in wallets %}
+                            <option value="{{ wallet.address }}" data-name="{{ wallet.name }}">
+                                {{ wallet.name }} ({{ wallet.address[:16] }}...)
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">选择现有钱包作为接收方</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">金额</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="amount" step="0.0001" min="0.0001" required
+                                placeholder="0.0000">
+                            <span class="input-group-text">BTC</span>
+                        </div>
+                        <div class="form-text">
+                            交易手续费: <span class="text-muted">0.01 BTC</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">交易摘要</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">发送金额:</small><br>
+                                        <span id="sendAmount">0.0000 BTC</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">交易费用:</small><br>
+                                        <span>0.01 BTC</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">总计:</small><br>
+                                        <strong id="totalAmount">0.01 BTC</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">余额:</small><br>
+                                        <span id="walletBalance">0.0000 BTC</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane"></i> 发送交易
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                            <i class="fas fa-times"></i> 清空表单
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> 交易说明
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="fas fa-clock"></i> 处理时间</h6>
+                    <p class="text-muted small">
+                        交易将被添加到待处理池中，等待矿工打包确认。
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <h6><i class="fas fa-coins"></i> 交易费用</h6>
+                    <p class="text-muted small">
+                        默认交易费用为 0.01 BTC，用于激励矿工处理交易。
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <h6><i class="fas fa-shield-alt"></i> 安全提示</h6>
+                    <p class="text-muted small">
+                        请仔细核对接收方地址，交易一旦发送无法撤回。
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <h6><i class="fas fa-check-circle"></i> 交易状态</h6>
+                    <p class="text-muted small">
+                        交易发送后可在区块链浏览器中查看确认状态。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if wallets %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-wallet"></i> 我的钱包
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for wallet in wallets %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ wallet.name }}</strong><br>
+                            <small class="text-muted">{{ wallet.address[:16] }}...</small>
+                        </div>
+                        <span class="badge bg-primary">{{ "%.4f"|format(wallet.balance) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const TRANSACTION_FEE = 0.01;
+
+    // 表单提交处理
+    document.getElementById('transactionForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        sendTransaction();
+    });
+
+    // 金额输入处理
+    document.getElementById('amount').addEventListener('input', updateSummary);
+    document.getElementById('fromWallet').addEventListener('change', function () {
+        updateSummary();
+        updateBalance();
+    });
+
+    // 接收方地址选择处理（已移除自定义地址功能）
+
+    function updateSummary() {
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const total = amount + TRANSACTION_FEE;
+
+        document.getElementById('sendAmount').textContent = amount.toFixed(4) + ' BTC';
+        document.getElementById('totalAmount').textContent = total.toFixed(4) + ' BTC';
+    }
+
+    function updateBalance() {
+        const select = document.getElementById('fromWallet');
+        const selectedOption = select.options[select.selectedIndex];
+
+        if (selectedOption && selectedOption.dataset.balance) {
+            const balance = parseFloat(selectedOption.dataset.balance);
+            document.getElementById('walletBalance').textContent = balance.toFixed(4) + ' BTC';
+        } else {
+            document.getElementById('walletBalance').textContent = '0.0000 BTC';
+        }
+    }
+
+    function updateWalletBalance() {
+        // 重新获取钱包余额信息
+        const fromWallet = document.getElementById('fromWallet').value;
+        if (!fromWallet) return;
+
+        $.ajax({
+            url: '/api/wallet_balance',
+            method: 'GET',
+            data: { wallet_name: fromWallet },
+            success: function (response) {
+                if (response.success) {
+                    // 更新下拉选项中的余额数据
+                    const select = document.getElementById('fromWallet');
+                    const selectedOption = select.options[select.selectedIndex];
+                    if (selectedOption) {
+                        selectedOption.dataset.balance = response.balance;
+                    }
+                    // 更新显示
+                    updateBalance();
+                }
+            },
+            error: function () {
+                // 如果获取失败，保持原有显示
+                console.log('获取钱包余额失败');
+            }
+        });
+    }
+
+    function sendTransaction() {
+        const fromWallet = document.getElementById('fromWallet').value;
+        const toWallet = document.getElementById('toWallet').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+
+        // 接收方地址就是选择的钱包地址
+        const toAddress = toWallet;
+
+        if (!fromWallet || !toAddress || !amount) {
+            showAlert('请填写所有必填字段', 'danger');
+            return;
+        }
+
+        if (amount <= 0) {
+            showAlert('金额必须大于 0', 'danger');
+            return;
+        }
+
+        // 检查是否发送给自己
+        const toSelect = document.getElementById('toWallet');
+        const toOption = toSelect.options[toSelect.selectedIndex];
+        if (toOption && toOption.dataset.name === fromWallet) {
+            showAlert('不能发送交易给自己', 'danger');
+            return;
+        }
+
+        // 检查余额
+        const fromSelect = document.getElementById('fromWallet');
+        const fromOption = fromSelect.options[fromSelect.selectedIndex];
+        const balance = parseFloat(fromOption.dataset.balance);
+
+        if (balance < amount + TRANSACTION_FEE) {
+            showAlert('余额不足，当前余额: ' + balance.toFixed(4) + ' BTC', 'danger');
+            return;
+        }
+
+        // 确认交易
+        let toDisplayText = toAddress;
+        if (toOption && toOption.dataset.name) {
+            toDisplayText = toOption.dataset.name + ' (' + toAddress.substring(0, 16) + '...)';
+        }
+
+        if (!confirm(`确定要发送 ${amount.toFixed(4)} BTC 到 ${toDisplayText}吗？\n\n总费用: ${(amount + TRANSACTION_FEE).toFixed(4)} BTC`)) {
+            return;
+        }
+
+        // 发送交易
+        const submitButton = document.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
+        submitButton.disabled = true;
+
+        $.ajax({
+            url: '/api/send_transaction',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                from_wallet: fromWallet,
+                to_address: toAddress,
+                amount: amount
+            }),
+            success: function (response) {
+                // 立即恢复按钮状态
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+
+                if (response.success) {
+                    showAlert('交易发送成功！\n交易ID: ' + response.transaction_id, 'success');
+                    clearForm();
+                    // 更新钱包余额显示
+                    updateWalletBalance();
+                } else {
+                    let errorMessage = '交易发送失败：' + response.error;
+                    if (response.error === '创建交易失败') {
+                        errorMessage += '\n\n💡 可能原因：UTXO已被锁定\n建议：请先挖矿打包待处理交易，然后再发送新交易';
+                    }
+                    showAlert(errorMessage, 'danger');
+                }
+            },
+            error: function (xhr) {
+                // 立即恢复按钮状态
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+
+                const response = xhr.responseJSON;
+                let errorMessage = '交易发送失败：' + (response ? response.error : '未知错误');
+                if (response && response.error === '创建交易失败') {
+                    errorMessage += '\n\n💡 可能原因：UTXO已被锁定\n建议：请先挖矿打包待处理交易，然后再发送新交易';
+                }
+                showAlert(errorMessage, 'danger');
+            }
+        });
+    }
+
+    function clearForm() {
+        document.getElementById('transactionForm').reset();
+        document.getElementById('customAddressDiv').style.display = 'none';
+        document.getElementById('customAddress').required = false;
+        updateSummary();
+        updateBalance();
+    }
+
+    function showAlert(message, type) {
+        // 转换为新的通知类型
+        const notificationType = type === 'danger' ? 'danger' : type;
+        showNotification(message.replace(/\n/g, '<br>'), notificationType, 8000);
+    }
+
+    // 初始化
+    updateSummary();
+    updateBalance();
+
+    // 处理URL参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromWallet = urlParams.get('from');
+    if (fromWallet) {
+        document.getElementById('fromWallet').value = fromWallet;
+        updateBalance();
+    }
+</script>
+{% endblock %}

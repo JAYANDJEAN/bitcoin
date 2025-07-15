@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}钱包详情 - {{ wallet_name }} - 比特币系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-wallet"></i> 钱包详情 - {{ wallet_name }}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">首页</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('wallets') }}">钱包管理</a></li>
+                <li class="breadcrumb-item active">{{ wallet_name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- 钱包信息 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> 钱包信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th width="80" class="text-muted">名称:</th>
+                            <td><strong>{{ wallet_name }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th width="80" class="text-muted">地址:</th>
+                            <td>
+                                <code class="text-primary">{{ wallet.address }}</code>
+                                <button class="btn btn-sm btn-outline-secondary ms-2"
+                                    onclick="copyAddress('{{ wallet.address }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th width="80" class="text-muted">余额:</th>
+                            <td>
+                                <span class="badge bg-success fs-6">{{ "%.4f"|format(balance) }} BTC</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th width="80" class="text-muted">公钥:</th>
+                            <td>
+                                <small class="text-muted">{{ wallet.public_key_hex[:32] }}...</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt"></i> 快速操作
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('transaction') }}?from={{ wallet_name }}" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> 发送交易
+                    </a>
+                    <button class="btn btn-outline-info" onclick="refreshBalance()">
+                        <i class="fas fa-sync-alt"></i> 刷新余额
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- UTXO信息 -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-coins"></i> UTXO信息
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if utxos %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>交易ID</th>
+                        <th>输出索引</th>
+                        <th>金额</th>
+                        <th>状态</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for utxo in utxos %}
+                    <tr>
+                        <td>
+                            <code class="text-muted">{{ utxo.transaction_id | truncate_hash(16) }}</code>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ utxo.output_index }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">{{ "%.4f"|format(utxo.amount) }} BTC</span>
+                        </td>
+                        <td>
+                            {% if utxo.status == 'spent' %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-times"></i> 已花费
+                            </span>
+                            {% elif utxo.status == 'locked' %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-lock"></i> 锁定
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check"></i> 可用
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if utxo.timestamp %}
+                            <small class="text-muted">{{ utxo.timestamp | format_datetime }}</small>
+                            {% else %}
+                            <small class="text-muted">区块确认后生成</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">UTXO统计</h6>
+                        <p class="mb-1">总数量: <strong>{{ utxos | length }}</strong></p>
+                        <p class="mb-1">可用数量: <strong>{{ utxos | selectattr('status', 'equalto', 'available') | list |
+                                length }}</strong></p>
+                        <p class="mb-1">锁定数量: <strong>{{ utxos | selectattr('status', 'equalto', 'locked') | list |
+                                length }}</strong></p>
+                        <p class="mb-0">已花费数量: <strong>{{ utxos | selectattr('status', 'equalto', 'spent') | list |
+                                length }}</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">金额统计</h6>
+                        <p class="mb-1">总金额: <strong>{{ "%.4f"|format(utxos | map(attribute='amount') | sum) }}
+                                BTC</strong></p>
+                        <p class="mb-1">可用金额: <strong>{{ "%.4f"|format(utxos | selectattr('status', 'equalto',
+                                'available')
+                                | map(attribute='amount') | sum) }} BTC</strong></p>
+                        <p class="mb-1">锁定金额: <strong>{{ "%.4f"|format(utxos | selectattr('status', 'equalto', 'locked')
+                                | map(attribute='amount') | sum) }} BTC</strong></p>
+                        <p class="mb-0">已花费金额: <strong>{{ "%.4f"|format(utxos | selectattr('status', 'equalto', 'spent')
+                                | map(attribute='amount') | sum) }} BTC</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-coins fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">还没有UTXO</h4>
+            <p class="text-muted">通过挖矿或接收交易来获得UTXO</p>
+            <a href="{{ url_for('mining') }}" class="btn btn-warning me-2">
+                <i class="fas fa-hammer"></i> 开始挖矿
+            </a>
+            <a href="{{ url_for('transaction') }}" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> 接收交易
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 交易历史 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-history"></i> 交易历史
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if transaction_history %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>交易ID</th>
+                        <th>类型</th>
+                        <th>对方地址</th>
+                        <th>金额</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transaction_history %}
+                    <tr>
+                        <td>
+                            <small class="text-muted">{{ tx['timestamp'] | format_datetime }}</small>
+                        </td>
+                        <td>
+                            <code class="text-muted">{{ tx['transaction_id'] | truncate_hash(16) }}</code>
+                        </td>
+                        <td>
+                            {% if tx['type'] == 'received' %}
+                            {% if tx['is_coinbase'] %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-star"></i> 挖矿
+                            </span>
+                            {% elif tx['from_address'] == wallet.address %}
+                            <span class="badge bg-info">
+                                <i class="fas fa-undo"></i> 找零
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-arrow-down"></i> 接收
+                            </span>
+                            {% endif %}
+                            {% elif tx['type'] == 'sent' %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-arrow-up"></i> 发送
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-star"></i> 挖矿
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {% if tx['type'] == 'received' %}
+                                {% if tx['is_coinbase'] %}
+                                -
+                                {% elif tx['from_address'] == wallet.address %}
+                                -
+                                {% else %}
+                                {{ tx['from_address'] | truncate_hash(16) if tx['from_address'] else '未知' }}
+                                {% endif %}
+                                {% else %}
+                                {{ tx['to_address'] | truncate_hash(16) if tx['to_address'] else '未知' }}
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if tx['type'] == 'received' else 'primary' }}">
+                                {% if tx['type'] == 'received' %}
+                                +{{ "%.4f"|format(tx['received_amount']) }}
+                                {% else %}
+                                -{{ "%.4f"|format(tx['sent_amount']) }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">
+                                <i class="fas fa-check"></i> 已确认
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-history fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">还没有交易历史</h4>
+            <p class="text-muted">发送或接收交易来查看历史记录</p>
+            <a href="{{ url_for('transaction') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> 发送交易
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 返回按钮 -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('wallets') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> 返回钱包列表
+        </a>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyAddress(address) {
+        copyToClipboard(address, '地址已复制到剪贴板');
+    }
+
+
+
+    function refreshBalance() {
+        location.reload();
+    }
+
+    // 使用全局的showNotification函数代替
+
+    // 自动刷新余额
+    setInterval(function () {
+        $.get('/api/blockchain_stats', function (data) {
+            // 可以在这里更新余额显示
+        });
+    }, 30000); // 30秒刷新一次
+</script>
+{% endblock %}

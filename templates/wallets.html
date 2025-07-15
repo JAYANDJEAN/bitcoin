@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}钱包管理 - 比特币系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-wallet"></i> 钱包管理
+        </h1>
+    </div>
+</div>
+
+<!-- 操作按钮 -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createWalletModal">
+            <i class="fas fa-plus"></i> 创建新钱包
+        </button>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importWalletModal">
+            <i class="fas fa-download"></i> 导入钱包
+        </button>
+    </div>
+</div>
+
+<!-- 获胜者提示 -->
+{% if highlight_wallet %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-trophy"></i>
+    <strong>🎉 恭喜！</strong> 钱包 <strong>{{ highlight_wallet }}</strong> 在挖矿竞争中获胜，获得了区块奖励！
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- 钱包列表 -->
+{% if wallets %}
+<div class="row">
+    {% for wallet_data in wallets %}
+    <div class="col-md-6 mb-4">
+        <div class="card{% if wallet_data.is_winner %} winner-wallet{% endif %}">
+            <div class="card-header{% if wallet_data.is_winner %} bg-success text-white{% endif %}">
+                <h5 class="mb-0">
+                    <i class="fas fa-wallet"></i> {{ wallet_data.name }}
+                    {% if wallet_data.is_winner %}
+                    <i class="fas fa-crown text-warning ms-2" title="挖矿获胜者"></i>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="mb-2">
+                            <strong>地址:</strong>
+                            <code class="text-primary ms-2"
+                                style="word-break: break-all; font-size: 0.875rem;">{{ wallet_data.address }}</code>
+                        </p>
+                        <p class="mb-3">
+                            <strong>余额:</strong>
+                            <span class="badge bg-success fs-6 ms-3">{{ "%.4f"|format(wallet_data.balance) }} BTC</span>
+                        </p>
+                        <div>
+                            <a href="{{ url_for('wallet_detail', wallet_name=wallet_data.name) }}"
+                                class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> 查看详情
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-wallet fa-4x text-muted mb-3"></i>
+        <h4 class="text-muted">还没有钱包</h4>
+        <p class="text-muted">创建或导入一个钱包来开始使用</p>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createWalletModal">
+            <i class="fas fa-plus"></i> 创建新钱包
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- 创建钱包模态框 -->
+<div class="modal fade" id="createWalletModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus"></i> 创建新钱包
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createWalletForm">
+                    <div class="mb-3">
+                        <label for="walletName" class="form-label">钱包名称</label>
+                        <input type="text" class="form-control" id="walletName" required>
+                        <div class="form-text">为您的钱包选择一个唯一的名称</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="createWallet()">创建钱包</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 导入钱包模态框 -->
+<div class="modal fade" id="importWalletModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-download"></i> 导入钱包
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="importWalletForm">
+                    <div class="mb-3">
+                        <label for="importWalletName" class="form-label">钱包名称</label>
+                        <input type="text" class="form-control" id="importWalletName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="privateKey" class="form-label">私钥</label>
+                        <textarea class="form-control" id="privateKey" rows="3" required
+                            placeholder="输入私钥（WIF格式或16进制）"></textarea>
+                        <div class="form-text">请输入有效的私钥来导入钱包</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="importWallet()">导入钱包</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function createWallet() {
+        const name = document.getElementById('walletName').value;
+
+        if (!name) {
+            alert('请输入钱包名称');
+            return;
+        }
+
+        $.ajax({
+            url: '/api/create_wallet',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ name: name }),
+            success: function (response) {
+                if (response.success) {
+                    alert('钱包创建成功！');
+                    location.reload();
+                } else {
+                    alert('创建失败：' + response.error);
+                }
+            },
+            error: function (xhr) {
+                const response = xhr.responseJSON;
+                alert('创建失败：' + (response ? response.error : '未知错误'));
+            }
+        });
+    }
+
+    function importWallet() {
+        const name = document.getElementById('importWalletName').value;
+        const privateKey = document.getElementById('privateKey').value;
+
+        if (!name || !privateKey) {
+            alert('请填写所有字段');
+            return;
+        }
+
+        $.ajax({
+            url: '/api/import_wallet',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ name: name, private_key: privateKey }),
+            success: function (response) {
+                if (response.success) {
+                    alert('钱包导入成功！');
+                    location.reload();
+                } else {
+                    alert('导入失败：' + response.error);
+                }
+            },
+            error: function (xhr) {
+                const response = xhr.responseJSON;
+                alert('导入失败：' + (response ? response.error : '未知错误'));
+            }
+        });
+    }
+
+    function exportWallet(walletName) {
+        if (confirm('确定要导出私钥吗？请妥善保管私钥，不要泄露给他人！')) {
+            // 这里应该调用后端API获取私钥
+            alert('导出功能暂未实现，请在后端添加相应API');
+        }
+    }
+
+    function copyAddress(address) {
+        copyToClipboard(address, '地址已复制到剪贴板');
+    }
+
+    // 获胜者钱包动画效果
+    {% if highlight_wallet %}
+    $(document).ready(function () {
+        // 为获胜者钱包添加闪烁动画
+        $('.winner-wallet').addClass('animate__animated animate__pulse');
+
+        // 5秒后移除动画
+        setTimeout(function () {
+            $('.winner-wallet').removeClass('animate__animated animate__pulse');
+        }, 5000);
+
+        // 自动滚动到获胜者钱包
+        const winnerWallet = $('.winner-wallet');
+        if (winnerWallet.length > 0) {
+            $('html, body').animate({
+                scrollTop: winnerWallet.offset().top - 100
+            }, 1000);
+        }
+    });
+    {% endif %}
+</script>
+
+<!-- 样式已移至 static/css/style.css -->
+{% endblock %}

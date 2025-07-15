@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}配色预览 - 素雅配色方案{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-palette"></i> 素雅配色方案预览
+        </h1>
+        <p class="text-muted">新的配色方案采用了更加柔和、低饱和度的颜色，营造出优雅舒适的视觉体验。</p>
+    </div>
+</div>
+
+<!-- 配色展示 -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-paint-brush"></i> 主要配色
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="p-3 mb-2 bg-primary text-white rounded">Primary</div>
+                            <small class="text-muted">主色调 - 蓝灰色</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="p-3 mb-2 bg-success text-white rounded">Success</div>
+                            <small class="text-muted">成功色 - 柔和绿</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="p-3 mb-2 bg-warning text-white rounded">Warning</div>
+                            <small class="text-muted">警告色 - 暖黄色</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="p-3 mb-2 bg-danger text-white rounded">Danger</div>
+                            <small class="text-muted">危险色 - 温和橙</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="p-3 mb-2 bg-info text-white rounded">Info</div>
+                            <small class="text-muted">信息色 - 淡蓝色</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="p-3 mb-2 bg-secondary text-white rounded">Secondary</div>
+                            <small class="text-muted">辅助色 - 暖灰色</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 按钮样式展示 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-hand-pointer"></i> 按钮样式
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary">Primary</button>
+                    <button class="btn btn-success">Success</button>
+                    <button class="btn btn-warning">Warning</button>
+                    <button class="btn btn-danger">Danger</button>
+                    <button class="btn btn-info">Info</button>
+                    <button class="btn btn-secondary">Secondary</button>
+                </div>
+                <hr>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-primary">Primary</button>
+                    <button class="btn btn-outline-success">Success</button>
+                    <button class="btn btn-outline-warning">Warning</button>
+                    <button class="btn btn-outline-info">Info</button>
+                    <button class="btn btn-outline-secondary">Secondary</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tag"></i> 徽章样式
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">Primary</span>
+                    <span class="badge bg-success">Success</span>
+                    <span class="badge bg-warning">Warning</span>
+                    <span class="badge bg-danger">Danger</span>
+                    <span class="badge bg-info">Info</span>
+                    <span class="badge bg-secondary">Secondary</span>
+                </div>
+                <p class="text-muted">这些徽章使用了新的素雅配色，视觉效果更加柔和</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 卡片和表格展示 -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-table"></i> 表格样式展示
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>地址</th>
+                                <th>余额</th>
+                                <th>交易次数</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</code></td>
+                                <td><span class="badge bg-success">50.2456 BTC</span></td>
+                                <td>12</td>
+                                <td><span class="badge bg-success">活跃</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2</code></td>
+                                <td><span class="badge bg-warning">0.5000 BTC</span></td>
+                                <td>3</td>
+                                <td><span class="badge bg-warning">待处理</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>1C4xPnMnNb3MF9UaXKWJmVfMHHjTFFZsmy</code></td>
+                                <td><span class="badge bg-secondary">0.0000 BTC</span></td>
+                                <td>0</td>
+                                <td><span class="badge bg-secondary">空闲</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 警告框展示 -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> 警告框样式
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>成功！</strong> 交易已成功确认并添加到区块链中。
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>注意！</strong> 此交易正在等待矿工确认。
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle"></i>
+                    <strong>错误！</strong> 余额不足，无法完成此交易。
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>提示！</strong> 建议设置更高的手续费以加快确认速度。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 表单展示 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit"></i> 表单样式
+                </h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">钱包地址</label>
+                        <input type="text" class="form-control" placeholder="输入比特币地址">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">交易金额</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" placeholder="0.0000">
+                            <span class="input-group-text">BTC</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">选择钱包</label>
+                        <select class="form-select">
+                            <option>Alice (1A1zP1eP...)</option>
+                            <option>Bob (1BvBMSEY...)</option>
+                            <option>Charlie (1C4xPnMn...)</option>
+                        </select>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">发送交易</button>
+                        <button type="button" class="btn btn-outline-secondary">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> 统计信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center mb-3">
+                            <h3 class="text-primary">1,234</h3>
+                            <small class="text-muted">总交易数</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center mb-3">
+                            <h3 class="text-success">567</h3>
+                            <small class="text-muted">确认交易</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center mb-3">
+                            <h3 class="text-warning">89</h3>
+                            <small class="text-muted">待处理</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center mb-3">
+                            <h3 class="text-info">12</h3>
+                            <small class="text-muted">活跃地址</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress mb-3">
+                    <div class="progress-bar" style="width: 75%"></div>
+                </div>
+                <p class="text-muted text-center">网络同步进度: 75%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 配色特点说明 -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb"></i> 新配色方案特点
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-eye text-primary icon-xl mb-2"></i>
+                            <h6>视觉舒适</h6>
+                            <p class="text-muted small">降低饱和度，减少视觉疲劳</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-palette text-success icon-xl mb-2"></i>
+                            <h6>素雅配色</h6>
+                            <p class="text-muted small">采用自然色调，优雅大方</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-universal-access text-warning icon-xl mb-2"></i>
+                            <h6>良好对比</h6>
+                            <p class="text-muted small">保持足够对比度，确保可读性</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i class="fas fa-mobile-alt text-info icon-xl mb-2"></i>
+                            <h6>响应适配</h6>
+                            <p class="text-muted small">在各种设备上都有良好表现</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 返回按钮 -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> 返回首页体验新配色
+        </a>
+    </div>
+</div>
+{% endblock %}

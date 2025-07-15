@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}比特币演示系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-chart-line"></i> 区块链系统
+        </h1>
+    </div>
+</div>
+
+<!-- 比特币系统流程说明 -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> 比特币系统整体流程
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="process-flow">
+                            <div class="row text-center">
+                                <div class="col-md-2">
+                                    <div class="process-step">
+                                        <div class="step-number">1</div>
+                                        <div class="step-icon">
+                                            <i class="fas fa-hammer text-warning"></i>
+                                        </div>
+                                        <div class="step-title">挖矿</div>
+                                        <div class="step-desc">矿工竞争计算nonce值，获得区块打包权</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-arrow-right text-muted"></i>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="process-step">
+                                        <div class="step-number">2</div>
+                                        <div class="step-icon">
+                                            <i class="fas fa-wallet text-success"></i>
+                                        </div>
+                                        <div class="step-title">获得比特币</div>
+                                        <div class="step-desc">获胜矿工获得区块奖励，钱包中有了比特币</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-arrow-right text-muted"></i>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="process-step">
+                                        <div class="step-number">3</div>
+                                        <div class="step-icon">
+                                            <i class="fas fa-exchange-alt text-primary"></i>
+                                        </div>
+                                        <div class="step-title">转账交易</div>
+                                        <div class="step-desc">钱包之间发送交易，进入交易池等待确认</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-arrow-right text-muted"></i>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="process-step">
+                                        <div class="step-number">4</div>
+                                        <div class="step-icon">
+                                            <i class="fas fa-cube text-info"></i>
+                                        </div>
+                                        <div class="step-title">打包区块</div>
+                                        <div class="step-desc">矿工将交易打包成区块，交易被正式记录</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb"></i>
+                                这是一个循环过程：挖矿 → 获得比特币 → 转账交易 → 挖矿打包 → 交易确认
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计信息卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">区块高度</h5>
+                        <h2 class="mb-0">{{ chain_info.height }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-cubes fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">挖矿难度</h5>
+                        <h2 class="mb-0">{{ chain_info.difficulty }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-hammer fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">待处理交易</h5>
+                        <h2 class="mb-0">{{ chain_info.pending_transactions }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">总供应量</h5>
+                        <h2 class="mb-0">{{ "%.4f"|format(chain_info.total_supply) }} BTC</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-coins fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 最新区块 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cube"></i> 最新区块
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if latest_blocks %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>高度</th>
+                                <th>哈希</th>
+                                <th>交易数</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for block in latest_blocks %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('block_detail', block_index=block.index) }}"
+                                        class="text-decoration-none">
+                                        #{{ block.index }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <code class="text-muted">{{ block.hash | truncate_hash }}</code>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ block.transactions | length }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ block.timestamp | format_datetime }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-cube fa-3x text-muted"></i>
+                    <p class="text-muted mt-2">还没有区块</p>
+                </div>
+                {% endif %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('blocks') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> 查看所有区块
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最新交易 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-exchange-alt"></i> 最新交易
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if latest_transactions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>交易ID</th>
+                                <th>发送方(源交易ID)</th>
+                                <th>接收方</th>
+                                <th>金额</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in latest_transactions %}
+                            <tr>
+                                <td>
+                                    <code class="text-muted">{{ tx.transaction_id | truncate_hash(12) }}</code>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {% if tx.is_coinbase %}
+                                        {{ tx.from_address }}
+                                        {% else %}
+                                        {{ tx.from_address | truncate_hash(12) }}
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ tx.to_address | truncate_hash(12) }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if tx.is_coinbase else 'primary' }}">
+                                        {{ "%.4f"|format(tx.amount) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-exchange-alt fa-3x text-muted"></i>
+                    <p class="text-muted mt-2">还没有交易</p>
+                </div>
+                {% endif %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('transaction') }}" class="btn btn-outline-success">
+                        <i class="fas fa-plus"></i> 发送交易
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 自动刷新页面数据
+    function refreshStats() {
+        $.get('/api/blockchain_stats', function (data) {
+            if (data.height !== undefined) {
+                $('.card-body h2').eq(0).text(data.height);
+                $('.card-body h2').eq(1).text(data.difficulty);
+                $('.card-body h2').eq(2).text(data.pending_transactions);
+            }
+        });
+    }
+
+    // 每5秒刷新一次
+    setInterval(refreshStats, 5000);
+    refreshStats();
+</script>
+{% endblock %}

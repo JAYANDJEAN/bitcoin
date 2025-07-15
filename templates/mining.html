@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block title %}挖矿竞争 - 比特币系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-hammer"></i> 挖矿竞争
+        </h1>
+
+        <!-- 挖矿说明框 -->
+        <div class="alert alert-info" role="alert">
+            <h5 class="alert-heading">
+                <i class="fas fa-info-circle"></i> 挖矿说明
+            </h5>
+            <p class="mb-2">
+                <strong>注意：这只是模拟演示！</strong>真实的比特币挖矿情况如下：
+            </p>
+            <ul class="mb-2">
+                <li><strong>全球竞争：</strong>比特币网络中的所有矿工（世界各地的节点）都在同时计算</li>
+                <li><strong>平均10分钟：</strong>比特币网络设计为平均每10分钟产出一个新区块</li>
+                <li><strong>自动难度调整：</strong>系统会根据全网算力自动调整挖矿难度</li>
+                <li><strong>区块打包权：</strong>挖矿胜利的矿工获得区块打包权，可以选择哪些交易被打包</li>
+                <li><strong>交易确认：</strong>只有区块被打包到链上，交易才算真正到账</li>
+                <li><strong>奖励机制：</strong>获胜矿工可以获得固定的区块奖励和交易手续费</li>
+            </ul>
+            <p class="mb-0">
+                <i class="fas fa-lightbulb text-warning"></i>
+                <strong>本系统仅为教育演示，计算时间为10秒，方便观察挖矿过程</strong>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- 挖矿轮次控制 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-play-circle"></i> 挖矿轮次控制
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">当前轮次</label>
+                            <div class="badge bg-primary fs-6" id="currentRound">第 1 轮</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">轮次状态</label>
+                            <div class="badge bg-secondary fs-6" id="roundStatus">准备就绪</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success btn-lg" id="startRoundBtn"
+                        onclick="startMiningRound()">
+                        <i class="fas fa-rocket"></i> 开始新一轮挖矿
+                    </button>
+                    <button type="button" class="btn btn-warning btn-lg" id="packageBtn" onclick="packageBlock()"
+                        style="display: none;">
+                        <i class="fas fa-cube"></i> 打包区块
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 矿工状态面板 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users"></i> 矿工状态
+                    <span class="badge bg-info ms-2" id="participantCount">0 个参与者</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="minersGrid" class="row">
+                    <!-- 矿工卡片将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- 挖矿统计 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> 挖矿统计
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">区块奖励:</small><br>
+                    <span class="badge bg-warning fs-6">50.0000 BTC</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">当前难度:</small><br>
+                    <span id="currentDifficulty" class="badge bg-info fs-6">{{ chain_info.difficulty if chain_info else
+                        'N/A' }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">最新区块:</small><br>
+                    <span id="latestBlock" class="badge bg-primary fs-6">#{{ chain_info.height if chain_info else 0
+                        }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">待处理交易:</small><br>
+                    <span id="pendingTx" class="badge bg-warning fs-6">{{ pending_transactions }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">计算时间:</small><br>
+                    <span class="badge bg-success fs-6">10 秒</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 获胜者信息 -->
+        <div class="card mb-4" id="winnerCard" style="display: none;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy"></i> 本轮获胜者
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <div class="mb-2">
+                        <i class="fas fa-crown text-warning fs-1"></i>
+                    </div>
+                    <h4 id="winnerName" class="text-success">-</h4>
+                    <p class="text-muted small" id="winnerAddress">-</p>
+                    <div class="mt-3">
+                        <small class="text-muted">获胜 Nonce:</small><br>
+                        <span id="winnerNonce" class="badge bg-success">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 挖矿日志 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-terminal"></i> 挖矿日志
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="miningLog" class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: auto;">
+                    <div class="text-muted">挖矿日志将在这里显示...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 样式已移至 static/css/style.css -->
+
+<script>
+    let roundUpdateInterval;
+    let currentRoundData = null;
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function () {
+        updateStats();
+        initializeMiningRound();
+
+        // 定期更新统计信息
+        setInterval(updateStats, 5000);
+    });
+
+    function initializeMiningRound() {
+        // 获取当前区块高度并更新轮次显示
+        $.get('/api/blockchain_stats', function (data) {
+            if (data.height !== undefined) {
+                const nextRound = data.height + 1;
+                document.getElementById('currentRound').textContent = `第 ${nextRound} 轮`;
+            }
+        });
+
+        // 初始化矿工面板
+        $.get('/api/wallets', function (data) {
+            if (data.wallets) {
+                displayMiners(data.wallets);
+            }
+        });
+
+        addToLog('🔧 挖矿系统已初始化');
+    }
+
+    function displayMiners(wallets) {
+        const minersGrid = document.getElementById('minersGrid');
+        minersGrid.innerHTML = '';
+
+        wallets.forEach(wallet => {
+            const minerCard = createMinerCard(wallet);
+            minersGrid.appendChild(minerCard);
+        });
+
+        document.getElementById('participantCount').textContent = `${wallets.length} 个参与者`;
+    }
+
+    function createMinerCard(wallet) {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 col-lg-4';
+
+        col.innerHTML = `
+        <div class="miner-card idle" id="miner-${wallet.name}">
+            <div class="d-flex align-items-center mb-2">
+                <div class="me-3">
+                    <i class="fas fa-user-circle fs-4 text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="mb-1">${wallet.name}</h6>
+                    <small class="text-muted">${wallet.address.substring(0, 16)}...</small>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-6">
+                    <small class="text-muted">Nonce:</small><br>
+                    <span class="nonce-counter" id="nonce-${wallet.name}">0</span>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted">状态:</small><br>
+                    <span class="badge bg-secondary" id="status-${wallet.name}">等待</span>
+                </div>
+            </div>
+            
+            <div class="mining-progress">
+                <div class="mining-progress-bar" id="progress-${wallet.name}" style="width: 0%"></div>
+            </div>
+        </div>
+    `;
+
+        return col;
+    }
+
+    function startMiningRound() {
+        const startBtn = document.getElementById('startRoundBtn');
+        startBtn.disabled = true;
+
+        $.ajax({
+            url: '/api/start_mining_round',
+            method: 'POST',
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.success) {
+                    addToLog(`🚀 开始第 ${response.round_number + 1} 轮挖矿竞争`);
+                    addToLog(`👥 参与者: ${response.participants.map(p => p.name).join(', ')}`);
+
+                    // 更新UI状态
+                    document.getElementById('roundStatus').textContent = '计算中...';
+                    document.getElementById('roundStatus').className = 'badge bg-warning fs-6';
+
+                    // 隐藏获胜者卡片
+                    document.getElementById('winnerCard').style.display = 'none';
+
+                    // 开始轮次状态更新
+                    startRoundUpdates();
+
+                    // 启动所有矿工的动画
+                    response.participants.forEach(participant => {
+                        const minerCard = document.getElementById(`miner-${participant.name}`);
+                        const statusBadge = document.getElementById(`status-${participant.name}`);
+
+                        if (minerCard && statusBadge) {
+                            minerCard.className = 'miner-card computing';
+                            statusBadge.textContent = '计算中';
+                            statusBadge.className = 'badge bg-warning';
+                        }
+                    });
+
+                } else {
+                    addToLog(`❌ 开始挖矿失败: ${response.error}`);
+                    if (response.error.includes('挖矿轮次已在进行中')) {
+                        addToLog(`💡 提示: 如果确认没有挖矿在进行，请刷新页面重试`);
+                    }
+                    startBtn.disabled = false;
+                }
+            },
+            error: function (xhr) {
+                const response = xhr.responseJSON;
+                const errorMsg = response ? response.error : '未知错误';
+                addToLog(`❌ 开始挖矿失败: ${errorMsg}`);
+                if (errorMsg.includes('挖矿轮次已在进行中')) {
+                    addToLog(`💡 提示: 如果确认没有挖矿在进行，请刷新页面重试`);
+                }
+                startBtn.disabled = false;
+            }
+        });
+    }
+
+    function startRoundUpdates() {
+        if (roundUpdateInterval) {
+            clearInterval(roundUpdateInterval);
+        }
+
+        roundUpdateInterval = setInterval(function () {
+            updateRoundStatus();
+        }, 500); // 每0.5秒更新一次
+    }
+
+    function updateRoundStatus() {
+        $.get('/api/mining_round_status', function (data) {
+            if (data.success) {
+                currentRoundData = data;
+
+                if (!data.round_active) {
+                    stopRoundUpdates();
+                    return;
+                }
+
+                // 更新参与者状态
+                if (data.participants) {
+                    data.participants.forEach(participant => {
+                        const nonceElement = document.getElementById(`nonce-${participant.name}`);
+                        const progressElement = document.getElementById(`progress-${participant.name}`);
+
+                        if (nonceElement) {
+                            nonceElement.textContent = participant.nonce.toLocaleString();
+                        }
+
+                        if (progressElement && data.computing_time > 0) {
+                            const progress = Math.min(100, (data.elapsed_time / data.computing_time) * 100);
+                            progressElement.style.width = progress + '%';
+                        }
+                    });
+                }
+
+                // 检查是否有获胜者
+                if (data.winner && data.block_ready) {
+                    showWinner(data.winner);
+                    stopRoundUpdates();
+
+                    // 显示打包按钮
+                    document.getElementById('packageBtn').style.display = 'block';
+                    document.getElementById('roundStatus').textContent = '准备打包';
+                    document.getElementById('roundStatus').className = 'badge bg-success fs-6';
+                }
+            }
+        });
+    }
+
+    function showWinner(winner) {
+        addToLog(`🎯 获胜者: ${winner.name}`);
+
+        // 更新获胜者卡片
+        document.getElementById('winnerName').textContent = winner.name;
+        document.getElementById('winnerAddress').textContent = winner.address;
+        document.getElementById('winnerNonce').textContent = winner.nonce.toLocaleString();
+        document.getElementById('winnerCard').style.display = 'block';
+
+        // 更新矿工状态
+        currentRoundData.participants.forEach(participant => {
+            const minerCard = document.getElementById(`miner-${participant.name}`);
+            const statusBadge = document.getElementById(`status-${participant.name}`);
+
+            if (minerCard && statusBadge) {
+                if (participant.name === winner.name) {
+                    minerCard.className = 'miner-card winner';
+                    statusBadge.textContent = '获胜';
+                    statusBadge.className = 'badge bg-success';
+                } else {
+                    minerCard.className = 'miner-card idle';
+                    statusBadge.textContent = '失败';
+                    statusBadge.className = 'badge bg-danger';
+                }
+            }
+        });
+    }
+
+    function packageBlock() {
+        const packageBtn = document.getElementById('packageBtn');
+        packageBtn.disabled = true;
+
+        $.ajax({
+            url: '/api/package_block',
+            method: 'POST',
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.success) {
+                    addToLog(`🎉 区块打包成功!`);
+                    addToLog(`📦 区块 #${response.block_index} 已生成`);
+                    addToLog(`🏆 获胜者: ${response.winner}`);
+                    addToLog(`💰 奖励: ${response.reward} BTC + ${response.transaction_fee} BTC 交易费`);
+                    addToLog(`📊 包含 ${response.transaction_count} 笔交易`);
+                    addToLog(`🔄 正在重置状态并跳转到钱包页面...`);
+
+                    // 自动重置挖矿状态
+                    $.ajax({
+                        url: '/api/reset_mining_round',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        success: function (resetResponse) {
+                            if (resetResponse.success) {
+                                // 跳转到钱包管理页面，显示更新后的余额
+                                window.location.href = '/wallets?highlight=' + encodeURIComponent(response.winner);
+                            } else {
+                                // 即使重置失败也跳转
+                                window.location.href = '/wallets?highlight=' + encodeURIComponent(response.winner);
+                            }
+                        },
+                        error: function () {
+                            // 即使重置失败也跳转
+                            window.location.href = '/wallets?highlight=' + encodeURIComponent(response.winner);
+                        }
+                    });
+
+                } else {
+                    addToLog(`❌ 区块打包失败: ${response.error}`);
+                    packageBtn.disabled = false;
+                }
+            },
+            error: function (xhr) {
+                const response = xhr.responseJSON;
+                addToLog(`❌ 区块打包失败: ${response ? response.error : '未知错误'}`);
+                packageBtn.disabled = false;
+            }
+        });
+    }
+
+    function resetMiningRound() {
+        if (!confirm('确定要重置挖矿轮次状态吗？这将清除当前的挖矿进度。')) {
+            return;
+        }
+
+        $.ajax({
+            url: '/api/reset_mining_round',
+            method: 'POST',
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.success) {
+                    addToLog(`🔄 ${response.message}`);
+
+                    // 重置UI状态
+                    resetRoundUI();
+
+                    // 停止所有更新
+                    stopRoundUpdates();
+
+                    // 重新初始化矿工面板
+                    initializeMiningRound();
+
+                } else {
+                    addToLog(`❌ 重置失败: ${response.error}`);
+                }
+            },
+            error: function (xhr) {
+                const response = xhr.responseJSON;
+                addToLog(`❌ 重置失败: ${response ? response.error : '未知错误'}`);
+            }
+        });
+    }
+
+    function resetRoundUI() {
+        // 重置按钮状态
+        document.getElementById('startRoundBtn').disabled = false;
+        document.getElementById('packageBtn').style.display = 'none';
+
+        // 重置状态显示
+        document.getElementById('roundStatus').textContent = '准备就绪';
+        document.getElementById('roundStatus').className = 'badge bg-secondary fs-6';
+
+        // 重置所有矿工卡片
+        const minerCards = document.querySelectorAll('.miner-card');
+        minerCards.forEach(card => {
+            card.className = 'miner-card idle';
+        });
+
+        // 重置所有状态显示
+        const statusBadges = document.querySelectorAll('[id^="status-"]');
+        statusBadges.forEach(badge => {
+            badge.textContent = '等待';
+            badge.className = 'badge bg-secondary';
+        });
+
+        // 重置进度条
+        const progressBars = document.querySelectorAll('[id^="progress-"]');
+        progressBars.forEach(bar => {
+            bar.style.width = '0%';
+        });
+
+        // 重置nonce显示
+        const nonces = document.querySelectorAll('[id^="nonce-"]');
+        nonces.forEach(nonce => {
+            nonce.textContent = '0';
+        });
+    }
+
+    function stopRoundUpdates() {
+        if (roundUpdateInterval) {
+            clearInterval(roundUpdateInterval);
+        }
+    }
+
+    function updateStats() {
+        $.get('/api/blockchain_stats', function (data) {
+            if (data.height !== undefined) {
+                document.getElementById('latestBlock').textContent = '#' + data.height;
+                document.getElementById('currentDifficulty').textContent = data.difficulty;
+                document.getElementById('pendingTx').textContent = data.pending_transactions;
+
+                // 更新当前轮次显示（下一个要挖的区块）
+                const nextRound = data.height + 1;
+                document.getElementById('currentRound').textContent = `第 ${nextRound} 轮`;
+            }
+        });
+    }
+
+    function addToLog(message) {
+        const logElement = document.getElementById('miningLog');
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.innerHTML = `<span class="text-muted">[${timestamp}]</span> ${message}`;
+        logElement.appendChild(logEntry);
+
+        // 保持日志数量不超过100条
+        while (logElement.children.length > 100) {
+            logElement.removeChild(logElement.firstChild);
+        }
+
+        // 滚动到底部
+        logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    // 页面卸载时清理
+    window.addEventListener('beforeunload', function () {
+        stopRoundUpdates();
+    });
+</script>
+{% endblock %}

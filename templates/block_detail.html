@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}区块 #{{ block.index }} - 比特币系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-cube"></i> 区块 #{{ block.index }}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">首页</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('blocks') }}">区块浏览</a></li>
+                <li class="breadcrumb-item active">区块 #{{ block.index }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- 区块基本信息 -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-info-circle"></i> 区块信息
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th width="150">区块高度:</th>
+                            <td><strong>{{ block.index }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>时间戳:</th>
+                            <td>{{ block.timestamp | format_datetime }}</td>
+                        </tr>
+                        <tr>
+                            <th>交易数量:</th>
+                            <td>
+                                <span class="badge bg-success">{{ block.transactions | length }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Nonce:</th>
+                            <td>{{ block.nonce }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th width="150">区块哈希:</th>
+                            <td><code class="text-primary">{{ block.hash | truncate_hash(32) }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>前一个区块:</th>
+                            <td>
+                                {% if block.previous_hash %}
+                                <code class="text-muted">{{ block.previous_hash | truncate_hash(32) }}</code>
+                                {% else %}
+                                <span class="text-muted">Genesis Block</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Merkle根:</th>
+                            <td><code class="text-info">{{ block.merkle_root | truncate_hash(32) }}</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 区块中的交易 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-exchange-alt"></i> 交易列表 ({{ block.transactions | length }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if block.transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>交易ID</th>
+                        <th>发送方(源交易ID)</th>
+                        <th>接收方</th>
+                        <th>金额</th>
+                        <th>类型</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in block.transactions %}
+                    <tr>
+                        <td>
+                            <code class="text-muted">{{ tx.transaction_id | truncate_hash(16) }}</code>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {% if not tx.inputs or not tx.inputs[0].transaction_id %}
+                                {% if block.index == 0 %}
+                                Genesis
+                                {% else %}
+                                系统 (挖矿奖励)
+                                {% endif %}
+                                {% else %}
+                                {{ tx.inputs[0].transaction_id | truncate_hash(16) }}
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {% if tx.outputs %}
+                                {{ tx.outputs[0].recipient_address | truncate_hash(16) }}
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if tx.outputs %}
+                            <span
+                                class="badge bg-{{ 'success' if not tx.inputs or not tx.inputs[0].transaction_id else 'primary' }}">
+                                {{ "%.4f"|format(tx.outputs[0].amount) }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not tx.inputs or not tx.inputs[0].transaction_id %}
+                            <span class="badge bg-warning">Coinbase</span>
+                            {% else %}
+                            <span class="badge bg-info">Transfer</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+            <i class="fas fa-exchange-alt fa-3x text-muted"></i>
+            <p class="text-muted mt-2">此区块没有交易</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 导航按钮 -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        {% if block.index > 0 %}
+        <a href="{{ url_for('block_detail', block_index=block.index - 1) }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-chevron-left"></i> 前一个区块
+        </a>
+        {% endif %}
+
+        <a href="{{ url_for('blocks') }}" class="btn btn-primary mx-2">
+            <i class="fas fa-list"></i> 返回区块列表
+        </a>
+
+        <!-- 这里可以添加下一个区块的链接，需要在后端判断是否存在 -->
+        {% if block.index < (chain_length - 1) %} <a href="{{ url_for('block_detail', block_index=block.index + 1) }}"
+            class="btn btn-outline-primary ms-2">
+            下一个区块 <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+    </div>
+</div>
+{% endblock %}

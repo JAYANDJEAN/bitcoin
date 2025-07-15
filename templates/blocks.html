@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}区块浏览 - 比特币系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-cubes"></i> 区块浏览
+        </h1>
+    </div>
+</div>
+
+{% if blocks %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">区块列表</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>高度</th>
+                        <th>哈希</th>
+                        <th>前一个区块</th>
+                        <th>交易数</th>
+                        <th>时间戳</th>
+                        <th>Nonce</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for block in blocks %}
+                    <tr>
+                        <td>
+                            <strong>#{{ block.index }}</strong>
+                        </td>
+                        <td>
+                            <code class="text-primary">{{ block.hash | truncate_hash }}</code>
+                        </td>
+                        <td>
+                            {% if block.previous_hash %}
+                            <code class="text-muted">{{ block.previous_hash | truncate_hash }}</code>
+                            {% else %}
+                            <span class="text-muted">Genesis</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-success">{{ block.transactions | length }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ block.timestamp | format_datetime }}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ block.nonce }}</small>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('block_detail', block_index=block.index) }}"
+                                class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> 查看
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 分页导航 -->
+{% if pagination %}
+<nav aria-label="区块分页" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('blocks', page=pagination.prev_num) }}">
+                <i class="fas fa-chevron-left"></i> 上一页
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">
+                <i class="fas fa-chevron-left"></i> 上一页
+            </span>
+        </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">
+                第 {{ pagination.page }} 页 / 共 {{ ((pagination.total - 1) // pagination.per_page) + 1 }} 页
+            </span>
+        </li>
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('blocks', page=pagination.next_num) }}">
+                下一页 <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">
+                下一页 <i class="fas fa-chevron-right"></i>
+            </span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-cube fa-4x text-muted mb-3"></i>
+        <h4 class="text-muted">还没有区块</h4>
+        <p class="text-muted">开始挖矿来创建第一个区块</p>
+        <a href="{{ url_for('mining') }}" class="btn btn-primary">
+            <i class="fas fa-hammer"></i> 开始挖矿
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
