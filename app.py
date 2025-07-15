@@ -462,9 +462,6 @@ def api_start_mining_round():
         mining_round_data['round_complete'] = False
         mining_round_active = True
 
-        print(f"🚀 开始第 {mining_round_data['round_number']} 轮挖矿竞争")
-        print(f"👥 参与者: {', '.join([p['name'] for p in participants])}")
-
         return jsonify({
             'success': True,
             'message': '挖矿轮次已开始',
@@ -507,8 +504,6 @@ def api_mining_round_status():
             # 停止所有参与者的计算
             for participant in mining_round_data['participants']:
                 participant['computing'] = False
-
-            print(f"🎯 第 {mining_round_data['round_number']} 轮挖矿获胜者: {winner['name']}")
 
         return jsonify({
             'success': True,
@@ -565,11 +560,6 @@ def api_package_block():
 
             mining_round_data['round_complete'] = True
             mining_round_active = False
-
-            print(f"🎉 第 {mining_round_data['round_number']} 轮挖矿完成!")
-            print(f"🏆 获胜者: {winner['name']}")
-            print(f"📦 区块 #{new_block.index} 已打包")
-            print(f"💰 获得奖励: {blockchain.mining_reward} BTC + {total_fee} BTC 交易费")
 
             return jsonify({
                 'success': True,
@@ -653,8 +643,6 @@ def api_reset_mining_round():
             'computing_time': 10.0
         }
 
-        print("🔄 挖矿轮次状态已重置")
-
         return jsonify({
             'success': True,
             'message': '挖矿轮次状态已重置',
@@ -699,10 +687,26 @@ def api_config():
         return jsonify({'error': '获取配置失败'}), 500
 
 
-if __name__ == '__main__':
+def init_default_wallets():
+    """初始化默认钱包（如果不存在）"""
+    try:
+        # 检查是否已经存在默认钱包，如果不存在则创建
+        if "Alice" not in wallet_manager.wallets:
+            wallet_manager.create_wallet("Alice")
 
+        if "Bob" not in wallet_manager.wallets:
+            wallet_manager.create_wallet("Bob")
+
+        if "Charlie" not in wallet_manager.wallets:
+            wallet_manager.create_wallet("Charlie")
+
+    except Exception as e:
+        pass
+
+
+# 在应用启动时初始化默认钱包
+init_default_wallets()
+
+if __name__ == '__main__':
     port = 5001  # 默认使用5001
-    alice = wallet_manager.create_wallet("Alice")
-    bob = wallet_manager.create_wallet("Bob")
-    charlie = wallet_manager.create_wallet("Charlie")
     app.run(debug=True, host='0.0.0.0', port=port)
